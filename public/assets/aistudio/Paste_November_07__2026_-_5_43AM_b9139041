@@ -1,0 +1,562 @@
+import React, { useState, useEffect, useRef } from 'react';
+import { GoogleGenAI } from '@google/genai';
+import { 
+  Server, GitBranch, Code, Sparkles, Bitcoin, Check, X, 
+  ChevronDown, ChevronUp, Bot, Shield, Globe, Cpu, ArrowRight,
+  Send, ExternalLink, RefreshCw, Layout, DollarSign, Star
+} from 'lucide-react';
+
+// Client do Google AI Studio (Gemini 2.5)
+const aiApiKey = import.meta.env.VITE_GEMINI_API_KEY || '';
+const aiClient = aiApiKey ? new GoogleGenAI({ apiKey: aiApiKey }) : null;
+
+interface ChatMessage {
+  id: string;
+  sender: 'user' | 'model';
+  text: string;
+  timestamp: string;
+}
+
+export function App() {
+  // Navegação Principal e Categoria
+  const [activeTab, setActiveTab] = useState<'vps' | 'cloud' | 'agency' | 'deploy' | 'partners' | 'aichat'>('vps');
+  const [billingCycle, setBillingCycle] = useState<'48' | '24' | '12' | '1'>('48');
+
+  // Controle de Acordeões da Tabela
+  const [openSections, setOpenSections] = useState({
+    wordpress: true,
+    aiTools: true,
+    security: true,
+    agencyTools: true
+  });
+
+  const toggleSection = (sec: keyof typeof openSections) => {
+    setOpenSections(prev => ({ ...prev, [sec]: !prev[sec] }));
+  };
+
+  // Cotações Financeiras em Tempo Real
+  const [market, setMarket] = useState({
+    itau: '43,79 (+2,05%)',
+    bb: '27,85 (+0,85%)',
+    tim: '17,40 (+1,12%)',
+    usd: '5,492',
+    eur: '6,012',
+    brent: '$ 74.20',
+    gas: '$ 2.75',
+    ibov: '166.716 pts'
+  });
+
+  // Estados do Motor de Deploy GitHub
+  const [repoUrl, setRepoUrl] = useState('');
+  const [targetDomain, setTargetDomain] = useState('');
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployLogs, setDeployLogs] = useState<string[]>([]);
+  const [deploySuccess, setDeploySuccess] = useState(false);
+
+  // Estados dos Parceiros de Código Aberto (Mercado Pago)
+  const [devRepo, setDevRepo] = useState('');
+  const [mpAccount, setMpAccount] = useState('');
+  const [markdownSnippet, setMarkdownSnippet] = useState('');
+
+  // Estados do Chat da IA (Google AI Studio)
+  const [chatMessages, setChatMessages] = useState<ChatMessage[]>([
+    {
+      id: '1',
+      sender: 'model',
+      text: 'Olá, CEO Márcio! Sou a IA da vpsNsA alimentada pelo Google AI Studio. Como posso auxiliar na gestão da infraestrutura hoje?',
+      timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })
+    }
+  ]);
+  const [chatInput, setChatInput] = useState('');
+  const [isAiLoading, setIsAiLoading] = useState(false);
+  const chatEndRef = useRef<HTMLDivElement>(null);
+
+  // FAQ Accordion State
+  const [openFaq, setOpenFaq] = useState<number | null>(0);
+
+  // Busca dados de mercado
+  useEffect(() => {
+    const fetchMarket = async () => {
+      try {
+        const res = await fetch('https://economia.awesomeapi.com.br/last/USD-BRL,EUR-BRL');
+        const data = await res.json();
+        if (data.USDBRL) {
+          setMarket(prev => ({
+            ...prev,
+            usd: parseFloat(data.USDBRL.bid).toFixed(3),
+            eur: parseFloat(data.EURBRL.bid).toFixed(3)
+          }));
+        }
+      } catch (err) {
+        console.error("Erro mercado:", err);
+      }
+    };
+    fetchMarket();
+    const interval = setInterval(fetchMarket, 15000);
+    return () => clearInterval(interval);
+  }, []);
+
+  useEffect(() => {
+    chatEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [chatMessages, isAiLoading]);
+
+  // Cálculo de Preços por Ciclo
+  const getPrice = (base: number) => {
+    switch (billingCycle) {
+      case '48': return (base * 0.4).toFixed(2);
+      case '24': return (base * 0.55).toFixed(2);
+      case '12': return (base * 0.75).toFixed(2);
+      default: return base.toFixed(2);
+    }
+  };
+
+  // Motor de Deploy Git Simulado
+  const handleExecuteDeploy = () => {
+    if (!repoUrl || !targetDomain) return;
+    setIsDeploying(true);
+    setDeploySuccess(false);
+    setDeployLogs(['🔄 Conectando com repositório do GitHub...', '📦 Clonando código-fonte no servidor Linux vpsNsA...']);
+
+    setTimeout(() => {
+      setDeployLogs(prev => [...prev, '⚙️ Executando build e instalando dependências...', '🔒 Emitindo certificado SSL Let\'s Encrypt automático...']);
+    }, 1500);
+
+    setTimeout(() => {
+      setDeployLogs(prev => [...prev, '🚀 Rota Nginx ativada! Projeto no ar com 0% de falhas.']);
+      setIsDeploying(false);
+      setDeploySuccess(true);
+    }, 3200);
+  };
+
+  // Gerador de Botão Mercado Pago
+  const handleGeneratePartnerButton = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!devRepo || !mpAccount) return;
+    const refId = btoa(mpAccount).substring(0, 10);
+    const snippet = `[![Implantar na vpsNsA](https://www.nsaoficial.com.br/deploy-button.svg)](https://www.nsaoficial.com.br/deploy?repo=${encodeURIComponent(devRepo)}&ref=${refId})`;
+    setMarkdownSnippet(snippet);
+  };
+
+  // Envio de Mensagem para o Chat Gemini
+  const handleSendAiMessage = async (e?: React.FormEvent) => {
+    if (e) e.preventDefault();
+    if (!chatInput.trim() || isAiLoading) return;
+
+    const userText = chatInput.trim();
+    const time = new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' });
+
+    setChatMessages(prev => [...prev, { id: Date.now().toString(), sender: 'user', text: userText, timestamp: time }]);
+    setChatInput('');
+    setIsAiLoading(true);
+
+    try {
+      if (aiClient) {
+        const response = await aiClient.models.generateContent({
+          model: 'gemini-2.5-flash',
+          contents: [
+            ...chatMessages.map(m => ({ role: m.sender === 'user' ? 'user' : 'model', parts: [{ text: m.text }] })),
+            { role: 'user', parts: [{ text: userText }] }
+          ],
+          config: {
+            systemInstruction: 'Você é o assistente virtual da vpsNsA Cloud Enterprise, criada pelo CEO Márcio Francisco de Almeida. Responda com tom tecnológico, seguro e executivo.'
+          }
+        });
+        const reply = response.text || 'Sem resposta da API.';
+        setChatMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'model', text: reply, timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) }]);
+      } else {
+        setTimeout(() => {
+          setChatMessages(prev => [...prev, { id: (Date.now() + 1).toString(), sender: 'model', text: 'Simulação vpsNsA: Insira a VITE_GEMINI_API_KEY no arquivo .env para utilizar a API real.', timestamp: new Date().toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' }) }]);
+        }, 1000);
+      }
+    } catch (err) {
+      console.error(err);
+    } finally {
+      setIsAiLoading(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full bg-[#080B11] text-slate-100 font-sans flex flex-col justify-between select-none">
+      
+      {/* 1. TICKER FINANCIAL BAR SOBERANO */}
+      <div className="w-full bg-[#0D121F] border-b border-indigo-500/30 px-4 py-2 flex items-center justify-between text-xs font-mono overflow-x-auto">
+        <div className="flex items-center gap-5 shrink-0 whitespace-nowrap">
+          <span className="text-orange-400 font-bold">ITAÚ: R$ {market.itau}</span>
+          <span className="text-slate-700">|</span>
+          <span className="text-yellow-400 font-bold">BB: R$ {market.bb}</span>
+          <span className="text-slate-700">|</span>
+          <span className="text-blue-400 font-bold">TIM: R$ {market.tim}</span>
+          <span className="text-slate-700">|</span>
+          <span className="text-cyan-400 font-bold">BRENT: {market.brent}</span>
+          <span className="text-slate-700">|</span>
+          <span className="text-amber-300 font-bold">GÁS: {market.gas}</span>
+          <span className="text-slate-700">|</span>
+          <span className="text-emerald-400 font-semibold">USD: R$ {market.usd}</span>
+          <span className="text-purple-300 font-semibold">EUR: R$ {market.eur}</span>
+        </div>
+        
+        <div className="flex items-center gap-3 shrink-0 pl-4">
+          <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] px-2.5 py-0.5 rounded font-bold">
+            B3 / Market Sync 🟢
+          </span>
+          <span className="bg-indigo-950 text-indigo-300 border border-indigo-500/50 text-[10px] px-2.5 py-0.5 rounded font-bold hidden md:inline-block">
+            CEO: Márcio Francisco
+          </span>
+        </div>
+      </div>
+
+      {/* 2. DASHBOARD PRINCIPAL */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        {/* MENU LATERAL NAVEGAÇÃO */}
+        <aside className="w-64 bg-[#0D121F] border-r border-indigo-500/20 p-4 flex flex-col justify-between shrink-0">
+          <div className="space-y-6">
+            <div className="flex items-center gap-3 px-2">
+              <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-indigo-600 via-purple-600 to-cyan-400 flex items-center justify-center shadow-lg font-black text-white text-base">
+                N
+              </div>
+              <span className="font-extrabold text-lg text-white tracking-wider">
+                vps<span className="text-indigo-400">NsA</span>
+              </span>
+            </div>
+
+            <nav className="space-y-1 text-xs font-medium">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider px-2 font-bold mb-2">Planos & Soluções</div>
+              
+              <button onClick={() => setActiveTab('vps')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'vps' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Server className="w-4 h-4 text-indigo-400" />
+                <span>Hospedagem VPS</span>
+              </button>
+
+              <button onClick={() => setActiveTab('cloud')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'cloud' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Cpu className="w-4 h-4 text-purple-400" />
+                <span>Nouvem Soberana (Cloud)</span>
+              </button>
+
+              <button onClick={() => setActiveTab('agency')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'agency' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Layout className="w-4 h-4 text-cyan-400" />
+                <span>Agency Pro</span>
+              </button>
+
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider px-2 font-bold pt-4 mb-2">Ferramentas Autônomas</div>
+
+              <button onClick={() => setActiveTab('deploy')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'deploy' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <GitBranch className="w-4 h-4 text-emerald-400" />
+                <span>Deploy GitHub (PaaS)</span>
+              </button>
+
+              <button onClick={() => setActiveTab('partners')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'partners' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Code className="w-4 h-4 text-amber-400" />
+                <span>Código Aberto & MP</span>
+              </button>
+
+              <button onClick={() => setActiveTab('aichat')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'aichat' ? 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Sparkles className="w-4 h-4 text-pink-400" />
+                <span>Google AI Studio Chat</span>
+              </button>
+            </nav>
+          </div>
+
+          <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
+            <p className="font-bold text-white">Márcio Francisco de Almeida</p>
+            <p className="text-[10px] text-slate-500">www.nsaoficial.com.br</p>
+          </div>
+        </aside>
+
+        {/* ÁREA DE CONTEÚDO PRINCIPAL */}
+        <main className="flex-1 overflow-y-auto p-6 space-y-8 bg-[#080B11]">
+          
+          {/* SELETOR SUPERIOR DE CICLO DE FATURAMENTO DA TABELA */}
+          <div className="flex flex-col md:flex-row items-center justify-between gap-4 bg-[#0D121F] border border-indigo-500/30 p-4 rounded-2xl shadow-xl">
+            <div>
+              <h2 className="text-base font-bold text-white flex items-center gap-2">
+                <Server className="w-4 h-4 text-cyan-400" />
+                <span>Comparar todos os recursos vpsNsA</span>
+              </h2>
+              <p className="text-xs text-slate-400">Selecione o plano ideal com descontos progressivos</p>
+            </div>
+
+            <div className="flex items-center gap-3">
+              <span className="text-xs text-slate-400 font-mono">Período de faturamento:</span>
+              <select 
+                value={billingCycle}
+                onChange={(e) => setBillingCycle(e.target.value as any)}
+                className="bg-[#151C2C] border border-indigo-500/40 text-cyan-300 font-bold text-xs rounded-xl px-4 py-2 outline-none cursor-pointer"
+              >
+                <option value="48">48 Meses (60% OFF - Maior Economia)</option>
+                <option value="24">24 Meses (45% OFF)</option>
+                <option value="12">12 Meses (25% OFF)</option>
+                <option value="1">1 Mês (Preço Normal)</option>
+              </select>
+            </div>
+          </div>
+
+          {/* TABELA COMPARATIVA ROLÁVEL COMPLETA ESTILO HOSTINGER COM MARCA VPSNSA */}
+          {(activeTab === 'vps' || activeTab === 'cloud' || activeTab === 'agency') && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-3xl overflow-hidden shadow-2xl">
+              <div className="overflow-x-auto overflow-y-auto max-h-[650px] scrollbar-thin scrollbar-thumb-indigo-600 scrollbar-track-[#080B11]">
+                <table className="w-full text-left border-collapse min-w-[950px]">
+                  
+                  <thead className="sticky top-0 bg-[#0D121F] z-30 border-b border-indigo-500/30 shadow-md">
+                    <tr>
+                      <th className="p-6 text-sm font-bold text-white w-1/5 bg-[#0D121F]">Planos vpsNsA</th>
+                      
+                      <th className="p-6 text-center w-1/5 border-l border-slate-800 bg-[#0D121F]">
+                        <span className="text-xs font-mono font-bold text-slate-400">Single / Startup</span>
+                        <div className="text-2xl font-black text-white mt-1">R$ {getPrice(14.99)}<span className="text-xs font-normal text-slate-400">/mês</span></div>
+                        <button className="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2 rounded-xl transition">
+                          Garantir Single
+                        </button>
+                      </th>
+
+                      <th className="p-6 text-center w-1/5 border-l border-indigo-500/50 bg-indigo-950/40 relative">
+                        <span className="absolute -top-3 left-1/2 -translate-x-1/2 bg-gradient-to-r from-indigo-500 to-cyan-400 text-white text-[9px] font-black px-3 py-0.5 rounded-full uppercase tracking-wider">
+                          Recomendado
+                        </span>
+                        <span className="text-xs font-mono font-bold text-cyan-300">Premium / Pro</span>
+                        <div className="text-2xl font-black text-white mt-1">R$ {getPrice(24.99)}<span className="text-xs font-normal text-slate-400">/mês</span></div>
+                        <button className="w-full mt-3 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold text-xs py-2 rounded-xl transition shadow-lg shadow-indigo-600/30">
+                          Garantir Premium
+                        </button>
+                      </th>
+
+                      <th className="p-6 text-center w-1/5 border-l border-slate-800 bg-[#0D121F]">
+                        <span className="text-xs font-mono font-bold text-purple-400">Unlimited / Growth</span>
+                        <div className="text-2xl font-black text-white mt-1">R$ {getPrice(39.99)}<span className="text-xs font-normal text-slate-400">/mês</span></div>
+                        <button className="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2 rounded-xl transition">
+                          Garantir Unlimited
+                        </button>
+                      </th>
+
+                      <th className="p-6 text-center w-1/5 border-l border-slate-800 bg-[#0D121F]">
+                        <span className="text-xs font-mono font-bold text-amber-400">Cloud Enterprise</span>
+                        <div className="text-2xl font-black text-white mt-1">R$ {getPrice(99.99)}<span className="text-xs font-normal text-slate-400">/mês</span></div>
+                        <button className="w-full mt-3 bg-slate-800 hover:bg-slate-700 text-white font-bold text-xs py-2 rounded-xl transition">
+                          Explorar Cloud
+                        </button>
+                      </th>
+                    </tr>
+                  </thead>
+
+                  <tbody className="divide-y divide-slate-800/60 text-xs">
+                    
+                    {/* ACORDEÃO 1: WORDPRESS E GERENCIAMENTO */}
+                    <tr className="bg-[#151C2C] cursor-pointer" onClick={() => toggleSection('wordpress')}>
+                      <td colSpan={5} className="py-3 px-6 font-bold text-cyan-300 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <Globe className="w-4 h-4 text-cyan-400" />
+                          <span>Instalação WordPress, LiteSpeed & Migração Automática</span>
+                        </span>
+                        {openSections.wordpress ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </td>
+                    </tr>
+                    {openSections.wordpress && (
+                      <>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Instalação grátis do WordPress em 1 clique</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Migração automática de sites grátis</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Aceleração com LiteSpeed & Cache de Objetos</td>
+                          <td className="p-4 text-center text-slate-400">Padrão</td>
+                          <td className="p-4 text-center font-bold text-cyan-300 bg-indigo-950/20">Aprimorado</td>
+                          <td className="p-4 text-center font-bold text-cyan-300">Aprimorado</td>
+                          <td className="p-4 text-center font-bold text-amber-300">Máximo Dedicado</td>
+                        </tr>
+                      </>
+                    )}
+
+                    {/* ACORDEÃO 2: RECURSOS AGENCY E E-COMMERCE (NOVO DAS FOTOS) */}
+                    <tr className="bg-[#151C2C] cursor-pointer" onClick={() => toggleSection('agencyTools')}>
+                      <td colSpan={5} className="py-3 px-6 font-bold text-amber-300 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <Layout className="w-4 h-4 text-amber-400" />
+                          <span>Ferramentas de Agência, E-Commerce & Monetização (vpsNsA Engine)</span>
+                        </span>
+                        {openSections.agencyTools ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </td>
+                    </tr>
+                    {openSections.agencyTools && (
+                      <>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Receba pagamentos com Checkout Transparente (Mercado Pago)</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Venda produtos físicos e digitais</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Editor de código & ferramentas de SEO com IA</td>
+                          <td className="p-4 text-center text-slate-500"><X className="w-4 h-4 mx-auto text-slate-600" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Monetize seus modelos com o recurso de remuneração</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                      </>
+                    )}
+
+                    {/* ACORDEÃO 3: SEGURANÇA E REDE */}
+                    <tr className="bg-[#151C2C] cursor-pointer" onClick={() => toggleSection('security')}>
+                      <td colSpan={5} className="py-3 px-6 font-bold text-emerald-300 flex items-center justify-between">
+                        <span className="flex items-center gap-2">
+                          <Shield className="w-4 h-4 text-emerald-400" />
+                          <span>Segurança Soberana, Firewall WAF & Cloudflare Nameservers</span>
+                        </span>
+                        {openSections.security ? <ChevronUp className="w-4 h-4" /> : <ChevronDown className="w-4 h-4" />}
+                      </td>
+                    </tr>
+                    {openSections.security && (
+                      <>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Proteção contra ataques DDoS de camada 7</td>
+                          <td className="p-4 text-center text-slate-400">Padrão</td>
+                          <td className="p-4 text-center text-white bg-indigo-950/20">Padrão</td>
+                          <td className="p-4 text-center text-emerald-400 font-bold">Aprimorado</td>
+                          <td className="p-4 text-center text-emerald-400 font-bold">Aprimorado Avançado</td>
+                        </tr>
+                        <tr>
+                          <td className="p-4 px-6 text-slate-300">Firewall de Aplicação Web (WAF) vpsNsA</td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400 bg-indigo-950/20"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                          <td className="p-4 text-center text-emerald-400"><Check className="w-4 h-4 mx-auto" /></td>
+                        </tr>
+                      </>
+                    )}
+
+                  </tbody>
+                </table>
+              </div>
+            </div>
+          )}
+
+          {/* ABA DE DEPLOY GITHUB */}
+          {activeTab === 'deploy' && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-2xl p-6 space-y-6 shadow-xl">
+              <h3 className="text-base font-bold text-white">Deploy Automático via GitHub (vpsNsA Engine)</h3>
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <input type="text" placeholder="https://github.com/usuario/projeto" value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} className="bg-[#151C2C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 outline-none" />
+                <input type="text" placeholder="meusite.com.br" value={targetDomain} onChange={(e) => setTargetDomain(e.target.value)} className="bg-[#151C2C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 outline-none" />
+              </div>
+              <button onClick={handleExecuteDeploy} disabled={isDeploying} className="w-full bg-gradient-to-r from-indigo-600 to-cyan-500 text-white font-bold text-xs py-3 rounded-xl flex items-center justify-center gap-2">
+                {isDeploying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <GitBranch className="w-4 h-4" />}
+                <span>{isDeploying ? 'Executando Deploy no Linux...' : 'Executar Deploy Soberano'}</span>
+              </button>
+              {deployLogs.length > 0 && (
+                <div className="bg-[#080B11] border border-slate-800 rounded-xl p-4 font-mono text-[11px] space-y-1 text-slate-300">
+                  {deployLogs.map((log, idx) => <div key={idx}>&gt; {log}</div>)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* ABA DE PARCEIROS MERCADO PAGO */}
+          {activeTab === 'partners' && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-2xl p-6 space-y-4 shadow-xl">
+              <h3 className="text-base font-bold text-white">Parceiros de Código Aberto (Open Source Partner)</h3>
+              <form onSubmit={handleGeneratePartnerButton} className="space-y-4">
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+                  <input type="url" required placeholder="Link do GitHub" value={devRepo} onChange={(e) => setDevRepo(e.target.value)} className="bg-[#151C2C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200" />
+                  <input type="text" required placeholder="Chave / E-mail Mercado Pago" value={mpAccount} onChange={(e) => setMpAccount(e.target.value)} className="bg-[#151C2C] border border-slate-800 rounded-xl px-4 py-2 text-xs text-slate-200" />
+                </div>
+                <button type="submit" className="w-full bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold text-xs py-2.5 rounded-xl">
+                  Gerar Botão "Implantar na vpsNsA" com Retorno MP
+                </button>
+              </form>
+              {markdownSnippet && (
+                <pre className="bg-[#151C2C] p-3 rounded-xl font-mono text-[11px] text-slate-200 overflow-x-auto border border-slate-800">
+                  {markdownSnippet}
+                </pre>
+              )}
+            </div>
+          )}
+
+          {/* ABA DE CHAT COM IA GOOGLE AI STUDIO */}
+          {activeTab === 'aichat' && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-2xl p-6 space-y-4 shadow-xl flex flex-col h-[500px]">
+              <div className="flex-1 overflow-y-auto space-y-3 p-3 bg-[#080B11]/60 rounded-xl">
+                {chatMessages.map((msg) => (
+                  <div key={msg.id} className={`flex ${msg.sender === 'user' ? 'justify-end' : 'justify-start'}`}>
+                    <div className={`max-w-[80%] p-3 rounded-2xl text-xs leading-relaxed ${msg.sender === 'user' ? 'bg-indigo-600 text-white' : 'bg-[#151C2C] text-slate-200'}`}>
+                      {msg.text}
+                    </div>
+                  </div>
+                ))}
+                <div ref={chatEndRef} />
+              </div>
+              <form onSubmit={handleSendAiMessage} className="flex gap-2">
+                <input type="text" value={chatInput} onChange={(e) => setChatInput(e.target.value)} placeholder="Digite sua dúvida ou comando..." className="flex-1 bg-[#151C2C] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-200 outline-none" />
+                <button type="submit" disabled={isAiLoading} className="bg-cyan-600 text-white px-5 py-2.5 rounded-xl text-xs font-bold flex items-center gap-2">
+                  <span>Enviar</span>
+                  <Send className="w-3.5 h-3.5" />
+                </button>
+              </form>
+            </div>
+          )}
+
+          {/* PROVA SOCIAL E PERGUNTAS FREQUENTES (FAQ) DE AGÊNCIA */}
+          <div className="bg-[#0D121F] border border-indigo-500/30 rounded-3xl p-8 space-y-6 shadow-2xl">
+            <div className="text-center space-y-2">
+              <h2 className="text-2xl font-black text-white">Mais de 5 milhões de pessoas criaram seus sites na vpsNsA.</h2>
+              <p className="text-xs text-slate-400">Perguntas frequentes (FAQ) sobre planos de hospedagem soberana</p>
+            </div>
+
+            <div className="space-y-3 max-w-4xl mx-auto pt-2">
+              {[
+                { q: "Qual a diferença entre os planos Cloud e Agency da vpsNsA?", a: "Os planos Cloud são focados em alta capacidade isolada para um único projeto pesado. Os planos Agency oferecem um painel White-label completo para você gerenciar de 100 a 300 sites de terceiros e revender com sua própria marca." },
+                { q: "Já tenho um site na Hostinger ou outro provedor. Posso transferi-lo para a vpsNsA?", a: "Sim! Nossa ferramenta de migração automática transfere todos os seus arquivos, banco de dados MySQL e SSL para a vpsNsA gratuitamente sem interrupção de serviço." },
+                { q: "Como recebo minhas comissões do programa de Código Aberto?", a: "Ao cadastrar sua conta do Mercado Pago no painel, o valor gerado através do botão de implantação cai diretamente na sua chave cadastrada." }
+              ].map((faq, idx) => (
+                <div key={idx} className="bg-[#151C2C] border border-slate-800 rounded-2xl overflow-hidden">
+                  <button onClick={() => setOpenFaq(openFaq === idx ? null : idx)} className="w-full px-6 py-4 text-left font-bold text-xs text-white flex items-center justify-between">
+                    <span>{faq.q}</span>
+                    {openFaq === idx ? <ChevronUp className="w-4 h-4 text-cyan-400" /> : <ChevronDown className="w-4 h-4 text-slate-500" />}
+                  </button>
+                  {openFaq === idx && (
+                    <div className="px-6 pb-4 text-xs text-slate-300 border-t border-slate-800 pt-3">
+                      {faq.a}
+                    </div>
+                  )}
+                </div>
+              ))}
+            </div>
+          </div>
+
+        </main>
+      </div>
+
+      {/* RODAPÉ EXECUTIVO */}
+      <footer className="w-full bg-[#0D121F] border-t border-indigo-500/20 px-6 py-2 flex items-center justify-between text-[11px] text-slate-500">
+        <span>© 2026 vpsNsA Sovereign Cloud — www.nsaoficial.com.br</span>
+        <span className="font-semibold text-slate-400">CEO Márcio Francisco de Almeida</span>
+      </footer>
+
+    </div>
+  );
+}
+
+export default App;

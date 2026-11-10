@@ -1,0 +1,763 @@
+@import "tailwindcss";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* ==========================================================================
+   GLOBAL CSS VARIABLES: DARK MODERN / HIGH CONTRAST CYBER / MINIMALIST LIGHT
+   ========================================================================== */
+
+/* 1. TEMA PADRÃO: DARK MODERN (Fundo Roxo Claro / Dark com Cores Vivas e Brilho Neon Pulsando) */
+:root,
+[data-theme="dark-modern"],
+.theme-dark-modern {
+  --bg-app: #0c0414;
+  --bg-surface: #150826;
+  --bg-surface-elevated: #1e0c37;
+  --bg-surface-hover: #2b114e;
+  --bg-header: rgba(21, 8, 38, 0.92);
+  --bg-sidebar: #120622;
+  --bg-ticker: #0a0312;
+  --bg-input: #1b0c34;
+  --text-main: #fbf8ff;
+  --text-sub: #f3e8ff;
+  --text-muted: #d8b4fe;
+  --border-app: rgba(192, 132, 252, 0.35);
+  --border-subtle: rgba(147, 51, 234, 0.28);
+  --border-accent: #c084fc;
+  --shadow-card: 0 0 24px -2px rgba(168, 85, 247, 0.35), 0 8px 32px -4px rgba(0, 0, 0, 0.7);
+  --accent-primary: #c084fc;
+  --accent-glow: rgba(192, 132, 252, 0.65);
+  --accent-secondary: #00f5ff;
+  --accent-magenta: #ff2a8d;
+  --accent-emerald: #00ff88;
+  --accent-amber: #ffd000;
+  color-scheme: dark;
+}
+
+/* 2. TEMA: HIGH CONTRAST CYBER (OLED Pitch Black + Electric Cyan Contrast) */
+[data-theme="high-contrast-cyber"],
+.theme-high-contrast-cyber {
+  --bg-app: #000000;
+  --bg-surface: #040608;
+  --bg-surface-elevated: #080e14;
+  --bg-surface-hover: #0c1822;
+  --bg-header: rgba(0, 0, 0, 0.96);
+  --bg-sidebar: #000000;
+  --bg-ticker: #020202;
+  --bg-input: #04080c;
+  --text-main: #ffffff;
+  --text-sub: #00f0ff;
+  --text-muted: #7095a5;
+  --border-app: #00f0ff;
+  --border-subtle: rgba(0, 240, 255, 0.45);
+  --border-accent: #00f0ff;
+  --shadow-card: 0 0 15px rgba(0, 240, 255, 0.35), inset 0 0 10px rgba(0, 240, 255, 0.05);
+  --accent-primary: #00f0ff;
+  --accent-glow: rgba(0, 240, 255, 0.6);
+  --accent-secondary: #10b981;
+  color-scheme: dark;
+}
+
+/* 3. TEMA: MINIMALIST LIGHT (Clean Swiss / Nordic Light Palette) */
+[data-theme="minimalist-light"],
+.theme-minimalist-light,
+:root:not(.dark) {
+  --bg-app: #f8fafc;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #f1f5f9;
+  --bg-surface-hover: #e2e8f0;
+  --bg-header: rgba(255, 255, 255, 0.94);
+  --bg-sidebar: #ffffff;
+  --bg-ticker: #f1f5f9;
+  --bg-input: #ffffff;
+  --text-main: #0f172a;
+  --text-sub: #334155;
+  --text-muted: #64748b;
+  --border-app: #e2e8f0;
+  --border-subtle: #cbd5e1;
+  --border-accent: #3b82f6;
+  --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.08), 0 4px 12px rgba(0, 0, 0, 0.04);
+  --accent-primary: #3b82f6;
+  --accent-glow: rgba(59, 130, 246, 0.2);
+  --accent-secondary: #0ea5e9;
+  color-scheme: light;
+}
+
+@layer base {
+  body {
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    background-color: var(--bg-app);
+    color: var(--text-main);
+    transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+  }
+  
+  code, kbd, samp, pre, .font-mono {
+    font-family: 'JetBrains Mono', ui-monospace, SFMono-Regular, monospace;
+    font-feature-settings: "tnum" 1, "zero" 1;
+  }
+}
+
+/* Regras de Renderização para Dark Modern (Fundo Roxo Claro / Dark com Cores Vivas e Neon Pulsando) */
+[data-theme="dark-modern"],
+:root.dark:not([data-theme="high-contrast-cyber"]) {
+  .bg-\[\#080B11\],
+  .bg-slate-950 {
+    background-color: #0c0414 !important;
+  }
+
+  .bg-\[\#0D121F\],
+  .bg-slate-900 {
+    background-color: #150826 !important;
+    box-shadow: 0 0 20px -2px rgba(168, 85, 247, 0.22), 0 8px 30px rgba(0, 0, 0, 0.6);
+  }
+
+  .bg-\[\#151C2C\],
+  .bg-slate-900\/60,
+  .bg-slate-900\/70,
+  .bg-slate-900\/80,
+  .bg-slate-900\/90 {
+    background-color: #1e0c37 !important;
+  }
+
+  .border-slate-800,
+  .border-slate-800\/80 {
+    border-color: rgba(192, 132, 252, 0.25) !important;
+  }
+
+  .border-indigo-500\/30 {
+    border-color: rgba(192, 132, 252, 0.45) !important;
+  }
+}
+
+/* Regras de Renderização para High Contrast Cyber */
+[data-theme="high-contrast-cyber"] {
+  .border-indigo-500\/30,
+  .border-cyan-500\/40,
+  .border-slate-800,
+  .border-slate-800\/80 {
+    border-color: rgba(0, 240, 255, 0.45) !important;
+  }
+
+  .bg-\[\#0D121F\],
+  .bg-\[\#080B11\],
+  .bg-slate-950,
+  .bg-slate-900 {
+    background-color: #020406 !important;
+  }
+
+  .bg-\[\#151C2C\],
+  .bg-slate-950\/60,
+  .bg-slate-900\/60 {
+    background-color: #060b10 !important;
+  }
+
+  h1, h2, h3, h4, .text-white {
+    color: #ffffff !important;
+    text-shadow: 0 0 1px rgba(255, 255, 255, 0.8);
+  }
+
+  .text-indigo-400,
+  .text-cyan-400 {
+    color: #00f0ff !important;
+    text-shadow: 0 0 8px rgba(0, 240, 255, 0.4);
+  }
+}
+
+/* Regras de Renderização para Minimalist Light */
+[data-theme="minimalist-light"],
+:root:not(.dark) {
+  .bg-slate-950,
+  .bg-slate-950\/80,
+  .bg-slate-950\/85,
+  .bg-slate-950\/90,
+  .bg-slate-950\/95,
+  .bg-\[\#080B11\] {
+    background-color: var(--bg-app) !important;
+  }
+
+  .bg-slate-900,
+  .bg-\[\#0D121F\] {
+    background-color: var(--bg-surface) !important;
+    box-shadow: var(--shadow-card);
+  }
+
+  .bg-slate-900\/40,
+  .bg-slate-900\/50,
+  .bg-slate-900\/60,
+  .bg-slate-900\/70,
+  .bg-slate-900\/80,
+  .bg-slate-900\/90,
+  .bg-\[\#151C2C\] {
+    background-color: var(--bg-surface-elevated) !important;
+  }
+
+  .border-slate-800,
+  .border-slate-800\/80,
+  .border-slate-800\/60,
+  .border-indigo-500\/30,
+  .border-cyan-500\/40 {
+    border-color: var(--border-app) !important;
+  }
+
+  .border-slate-700,
+  .border-slate-700\/80,
+  .border-slate-700\/60 {
+    border-color: #cbd5e1 !important;
+  }
+
+  .text-slate-100,
+  .text-white {
+    color: var(--text-main) !important;
+  }
+
+  .text-slate-200 {
+    color: var(--text-sub) !important;
+  }
+
+  .text-slate-300 {
+    color: #334155 !important;
+  }
+
+  .text-slate-400 {
+    color: var(--text-muted) !important;
+  }
+
+  .hover\:bg-slate-800:hover,
+  .hover\:bg-slate-900:hover,
+  .hover\:bg-slate-900\/60:hover,
+  .hover\:bg-slate-900\/70:hover {
+    background-color: var(--bg-surface-hover) !important;
+  }
+
+  .hover\:text-slate-200:hover,
+  .hover\:text-white:hover {
+    color: #0f172a !important;
+  }
+}
+
+/* Custom scrollbars */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-ticker);
+}
+::-webkit-scrollbar-thumb {
+  background: var(--border-app);
+  border-radius: 3px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--text-muted);
+}
+
+/* Continuous ticker animations */
+@keyframes marquee {
+  0% { transform: translateX(0%); }
+  100% { transform: translateX(-50%); }
+}
+
+@keyframes marquee-clockwise {
+  0% { transform: translateX(-50%); }
+  100% { transform: translateX(0%); }
+}
+
+.animate-marquee {
+  display: flex;
+  width: max-content;
+  animation: marquee 35s linear infinite;
+}
+
+.animate-marquee-clockwise {
+  display: flex;
+  width: max-content;
+  animation: marquee-clockwise 35s linear infinite;
+}
+
+.animate-marquee:hover,
+.animate-marquee-clockwise:hover {
+  animation-play-state: paused;
+}
+
+/* ==========================================================================
+   WORLD-CLASS VISUAL EFFECTS & CARD AURA SYSTEM (VPS NsA HYPERSCALE CLUSTER)
+   ========================================================================== */
+
+/* Keyframe Animations */
+@keyframes laserSweep {
+  0% { transform: translateX(-100%); opacity: 0; }
+  20% { opacity: 1; }
+  80% { opacity: 1; }
+  100% { transform: translateX(200%); opacity: 0; }
+}
+
+@keyframes specularShimmer {
+  0% { transform: translateX(-150%) skewX(-20deg); opacity: 0; }
+  20% { opacity: 0.6; }
+  50% { transform: translateX(200%) skewX(-20deg); opacity: 0; }
+  100% { transform: translateX(200%) skewX(-20deg); opacity: 0; }
+}
+
+@keyframes neonPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 14px rgba(192, 132, 252, 0.35), 0 0 28px rgba(168, 85, 247, 0.2), inset 0 0 8px rgba(192, 132, 252, 0.1);
+    border-color: rgba(192, 132, 252, 0.4);
+  }
+  50% {
+    box-shadow: 0 0 26px rgba(192, 132, 252, 0.75), 0 0 52px rgba(232, 121, 249, 0.5), 0 0 75px rgba(168, 85, 247, 0.3), inset 0 0 18px rgba(192, 132, 252, 0.25);
+    border-color: rgba(232, 121, 249, 0.9);
+  }
+}
+
+@keyframes neonBorderPulse {
+  0%, 100% {
+    border-color: rgba(192, 132, 252, 0.4);
+    box-shadow: 0 0 10px rgba(168, 85, 247, 0.3);
+  }
+  50% {
+    border-color: rgba(232, 121, 249, 0.95);
+    box-shadow: 0 0 24px rgba(232, 121, 249, 0.75), 0 0 40px rgba(192, 132, 252, 0.45);
+  }
+}
+
+@keyframes neonMeshPulse {
+  0%, 100% {
+    opacity: 0.55;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.95;
+    transform: scale(1.05);
+  }
+}
+
+@keyframes neonTextPulse {
+  0%, 100% {
+    text-shadow: 0 0 8px rgba(192, 132, 252, 0.6), 0 0 16px rgba(168, 85, 247, 0.4);
+  }
+  50% {
+    text-shadow: 0 0 16px rgba(232, 121, 249, 0.95), 0 0 30px rgba(192, 132, 252, 0.8), 0 0 45px rgba(168, 85, 247, 0.6);
+  }
+}
+
+@keyframes auraPulseGlow {
+  0%, 100% {
+    box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.25), 0 8px 24px -4px rgba(168, 85, 247, 0.2), 0 0 18px 2px rgba(192, 132, 252, 0.15);
+  }
+  50% {
+    box-shadow: 0 0 0 1px rgba(232, 121, 249, 0.6), 0 14px 34px -4px rgba(232, 121, 249, 0.35), 0 0 28px 4px rgba(192, 132, 252, 0.3);
+  }
+}
+
+@keyframes radarSweep {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
+/* Cyber Grid Viewport Mesh Backdrop com fundo roxo claro luminante */
+.cyber-grid-canvas {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(192, 132, 252, 0.20) 0%, rgba(147, 51, 234, 0.09) 35%, transparent 70%),
+    radial-gradient(circle at 85% 60%, rgba(255, 42, 141, 0.12) 0%, transparent 50%),
+    radial-gradient(circle at 15% 80%, rgba(0, 245, 255, 0.10) 0%, transparent 50%),
+    linear-gradient(to right, rgba(192, 132, 252, 0.05) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(192, 132, 252, 0.05) 1px, transparent 1px);
+  background-size: 100% 100%, 100% 100%, 100% 100%, 36px 36px, 36px 36px;
+}
+
+:root:not(.dark) .cyber-grid-canvas {
+  background-image: 
+    radial-gradient(circle at 50% 0%, rgba(99, 102, 241, 0.06) 0%, transparent 65%),
+    linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
+}
+
+/* 1. Modo Padrão / Aura Cibernética com Brilho Neon Pulsando */
+.card-cyber-aura {
+  position: relative;
+  border-radius: 0.75rem;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 0 1px rgba(192, 132, 252, 0.28), 
+              0 6px 20px -4px rgba(12, 4, 24, 0.65), 
+              0 0 16px 1px rgba(168, 85, 247, 0.18);
+  animation: neonPulseGlow 3.5s ease-in-out infinite;
+}
+
+.card-cyber-aura:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(232, 121, 249, 0.8), 
+              0 18px 40px -6px rgba(192, 132, 252, 0.4), 
+              0 0 32px 4px rgba(232, 121, 249, 0.3);
+}
+
+/* 2. Modo Vidro Translúcido (Frosted Glassmorphism) */
+.card-neo-glass {
+  position: relative;
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border-radius: 0.75rem;
+  transition: transform 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.22s cubic-bezier(0.16, 1, 0.3, 1), 
+              border-color 0.22s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 0 1px rgba(255, 255, 255, 0.12), 
+              0 8px 30px -4px rgba(0, 0, 0, 0.6), 
+              inset 0 1px 1px 0 rgba(255, 255, 255, 0.15);
+}
+
+.card-neo-glass:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 0 0 1px rgba(56, 189, 248, 0.5), 
+              0 18px 40px -6px rgba(2, 132, 199, 0.25), 
+              inset 0 1px 2px 0 rgba(255, 255, 255, 0.25);
+}
+
+/* 3. Modo HUD Tático (Military Crosshairs & High Contrast) */
+.card-hud-contrast {
+  position: relative;
+  border-radius: 0.5rem;
+  transition: transform 0.2s cubic-bezier(0.16, 1, 0.3, 1), 
+              box-shadow 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 0 1.5px rgba(14, 165, 233, 0.4), 
+              0 4px 12px rgba(0, 0, 0, 0.7);
+}
+
+.card-hud-contrast:hover {
+  transform: translateY(-1.5px);
+  box-shadow: 0 0 0 2px rgba(34, 211, 238, 0.8), 
+              0 8px 24px rgba(6, 182, 212, 0.25);
+}
+
+/* Efeito de Feixe Laser no Topo do Card */
+.card-laser-beam {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 20;
+}
+
+.card-laser-beam::after {
+  content: '';
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 50%;
+  height: 100%;
+  background: linear-gradient(90deg, transparent, #22d3ee, #38bdf8, #818cf8, transparent);
+  animation: laserSweep 4s ease-in-out infinite;
+}
+
+/* Specular Shimmer Sweep on Hover */
+.card-specular-glare {
+  position: absolute;
+  inset: 0;
+  overflow: hidden;
+  pointer-events: none;
+  z-index: 10;
+  border-radius: inherit;
+}
+
+.card-specular-glare::after {
+  content: '';
+  position: absolute;
+  top: -50%;
+  left: -50%;
+  width: 200%;
+  height: 200%;
+  background: linear-gradient(
+    115deg,
+    transparent 35%,
+    rgba(255, 255, 255, 0.05) 45%,
+    rgba(34, 211, 238, 0.12) 50%,
+    rgba(255, 255, 255, 0.05) 55%,
+    transparent 65%
+  );
+  transform: translateX(-150%) skewX(-20deg);
+  opacity: 0;
+  transition: opacity 0.3s;
+}
+
+.group:hover .card-specular-glare::after,
+.card-cyber-aura:hover .card-specular-glare::after,
+.card-neo-glass:hover .card-specular-glare::after {
+  opacity: 1;
+  animation: specularShimmer 2.2s cubic-bezier(0.16, 1, 0.3, 1) infinite;
+}
+
+/* Cantoneiras HUD de Alta Precisão (Top-Left, Top-Right, Bottom-Left, Bottom-Right) */
+.hud-corner {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  pointer-events: none;
+  z-index: 15;
+  transition: border-color 0.2s ease, transform 0.2s ease;
+}
+
+.hud-corner-tl {
+  top: -1px;
+  left: -1px;
+  border-top: 2px solid rgba(6, 182, 212, 0.85);
+  border-left: 2px solid rgba(6, 182, 212, 0.85);
+  border-top-left-radius: 4px;
+}
+
+.hud-corner-tr {
+  top: -1px;
+  right: -1px;
+  border-top: 2px solid rgba(6, 182, 212, 0.85);
+  border-right: 2px solid rgba(6, 182, 212, 0.85);
+  border-top-right-radius: 4px;
+}
+
+.hud-corner-bl {
+  bottom: -1px;
+  left: -1px;
+  border-bottom: 2px solid rgba(6, 182, 212, 0.85);
+  border-left: 2px solid rgba(6, 182, 212, 0.85);
+  border-bottom-left-radius: 4px;
+}
+
+.hud-corner-br {
+  bottom: -1px;
+  right: -1px;
+  border-bottom: 2px solid rgba(6, 182, 212, 0.85);
+  border-right: 2px solid rgba(6, 182, 212, 0.85);
+  border-bottom-right-radius: 4px;
+}
+
+/* Hover reativo nas cantoneiras */
+.card-cyber-aura:hover .hud-corner,
+.card-neo-glass:hover .hud-corner,
+.card-hud-contrast:hover .hud-corner,
+.group:hover .hud-corner {
+  border-color: #38bdf8;
+  filter: drop-shadow(0 0 4px #06b6d4);
+}
+
+/* Text & Numeric High-Definition Glows (Legibilidade Impecável) */
+.text-glow-cyan {
+  text-shadow: 0 0 12px rgba(6, 182, 212, 0.55);
+}
+
+.text-glow-emerald {
+  text-shadow: 0 0 12px rgba(16, 185, 129, 0.55);
+}
+
+.text-glow-rose {
+  text-shadow: 0 0 12px rgba(244, 63, 94, 0.55);
+}
+
+.text-glow-amber {
+  text-shadow: 0 0 12px rgba(245, 158, 11, 0.55);
+}
+
+.text-glow-indigo {
+  text-shadow: 0 0 12px rgba(99, 102, 241, 0.55);
+}
+
+/* Animação Suave de Radar */
+.animate-radar {
+  animation: radarSweep 6s linear infinite;
+}
+
+/* Definição exata das cores e efeitos de neon para o seu projeto */
+.neon-glow-blue {
+  color: #00e5ff;
+  text-shadow: 0 0 10px rgba(0, 229, 255, 0.8), 0 0 20px rgba(0, 128, 255, 0.6);
+}
+
+.neon-border-blue {
+  border: 2px solid #00e5ff;
+  box-shadow: 0 0 15px rgba(0, 229, 255, 0.5), inset 0 0 15px rgba(0, 128, 255, 0.3);
+}
+
+/* Azul Neon Intenso */
+.neon-intense-blue {
+  border: 2px solid rgb(34, 211, 238);
+  box-shadow: 0 0 20px rgba(0, 229, 255, 0.6);
+  color: rgb(103, 232, 249);
+}
+
+/* Utilitários de Cores Vivas e Brilho Neon Pulsando */
+.neon-glow-purple {
+  color: #c084fc;
+  text-shadow: 0 0 10px rgba(192, 132, 252, 0.8), 0 0 22px rgba(168, 85, 247, 0.6);
+}
+
+.neon-border-purple {
+  border: 1.5px solid #c084fc;
+  box-shadow: 0 0 16px rgba(192, 132, 252, 0.5), inset 0 0 12px rgba(168, 85, 247, 0.25);
+  animation: neonBorderPulse 3s ease-in-out infinite;
+}
+
+.neon-glow-magenta {
+  color: #ff2a8d;
+  text-shadow: 0 0 10px rgba(255, 42, 141, 0.8), 0 0 22px rgba(244, 63, 94, 0.6);
+}
+
+.neon-border-magenta {
+  border: 1.5px solid #ff2a8d;
+  box-shadow: 0 0 16px rgba(255, 42, 141, 0.5), inset 0 0 12px rgba(244, 63, 94, 0.25);
+}
+
+.neon-glow-cyan {
+  color: #00f5ff;
+  text-shadow: 0 0 10px rgba(0, 245, 255, 0.8), 0 0 22px rgba(6, 182, 212, 0.6);
+}
+
+.neon-glow-emerald {
+  color: #00ff88;
+  text-shadow: 0 0 10px rgba(0, 255, 136, 0.8), 0 0 22px rgba(16, 185, 129, 0.6);
+}
+
+.neon-glow-amber {
+  color: #ffd000;
+  text-shadow: 0 0 10px rgba(255, 208, 0, 0.8), 0 0 22px rgba(245, 158, 11, 0.6);
+}
+
+.neon-aura-pulsing {
+  animation: neonPulseGlow 3s ease-in-out infinite;
+}
+
+/* Paleta do Datacenter Oficial vpsNsA (Extraída da Foto do Corredor) */
+.datacenter-cyan-frame {
+  border: 2px solid #00f0ff;
+  box-shadow: 0 0 20px rgba(0, 240, 255, 0.75), inset 0 0 15px rgba(0, 240, 255, 0.35);
+}
+
+.datacenter-purple-frame {
+  border: 2px solid #a855f7;
+  box-shadow: 0 0 20px rgba(168, 85, 247, 0.75), inset 0 0 15px rgba(168, 85, 247, 0.35);
+}
+
+.datacenter-glass-reflection {
+  background: linear-gradient(180deg, rgba(0, 240, 255, 0.08) 0%, rgba(168, 85, 247, 0.08) 50%, rgba(6, 10, 18, 0.95) 100%);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+}
+
+/* ==========================================================================
+   CORES VIVAS DE MODO PROFISSIONAL & SUAVE (SMOOTH VIVID HARMONY)
+   ========================================================================== */
+
+/* Cartões com Cores Vivas, Toque Suave e Acabamento Profissional */
+.card-vivid-soft {
+  position: relative;
+  border-radius: 1rem;
+  background: linear-gradient(145deg, rgba(23, 11, 44, 0.82) 0%, rgba(14, 7, 28, 0.94) 100%);
+  border: 1px solid rgba(192, 132, 252, 0.22);
+  box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.5), 0 0 16px -2px rgba(168, 85, 247, 0.12);
+  backdrop-filter: blur(14px);
+  -webkit-backdrop-filter: blur(14px);
+  transition: all 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.card-vivid-soft:hover {
+  transform: translateY(-2px);
+  border-color: rgba(192, 132, 252, 0.5);
+  box-shadow: 0 12px 30px -4px rgba(0, 0, 0, 0.6), 0 0 25px 2px rgba(168, 85, 247, 0.22);
+}
+
+/* Badges e Pílulas de Cores Vivas com Tom Suave e Alta Legibilidade */
+.badge-vivid-cyan {
+  background: rgba(6, 182, 212, 0.15);
+  border: 1px solid rgba(34, 211, 238, 0.4);
+  color: #67e8f9;
+  text-shadow: 0 0 8px rgba(6, 182, 212, 0.35);
+}
+
+.badge-vivid-purple {
+  background: rgba(168, 85, 247, 0.15);
+  border: 1px solid rgba(192, 132, 252, 0.4);
+  color: #e9d5ff;
+  text-shadow: 0 0 8px rgba(168, 85, 247, 0.35);
+}
+
+.badge-vivid-emerald {
+  background: rgba(16, 185, 129, 0.15);
+  border: 1px solid rgba(52, 211, 153, 0.4);
+  color: #a7f3d0;
+  text-shadow: 0 0 8px rgba(16, 185, 129, 0.35);
+}
+
+.badge-vivid-amber {
+  background: rgba(245, 158, 11, 0.15);
+  border: 1px solid rgba(251, 191, 36, 0.4);
+  color: #fef08a;
+  text-shadow: 0 0 8px rgba(245, 158, 11, 0.35);
+}
+
+.badge-vivid-rose {
+  background: rgba(244, 63, 94, 0.15);
+  border: 1px solid rgba(251, 113, 133, 0.4);
+  color: #fecdd3;
+  text-shadow: 0 0 8px rgba(244, 63, 94, 0.35);
+}
+
+.badge-vivid-indigo {
+  background: rgba(99, 102, 241, 0.15);
+  border: 1px solid rgba(129, 140, 248, 0.4);
+  color: #c7d2fe;
+  text-shadow: 0 0 8px rgba(99, 102, 241, 0.35);
+}
+
+/* Tipografia com Brilho Suave e Sem Fadiga Visual */
+.text-vivid-purple {
+  color: #d8b4fe;
+  text-shadow: 0 0 8px rgba(192, 132, 252, 0.45);
+}
+
+.text-vivid-cyan {
+  color: #7dd3fc;
+  text-shadow: 0 0 8px rgba(56, 189, 248, 0.45);
+}
+
+.text-vivid-emerald {
+  color: #86efac;
+  text-shadow: 0 0 8px rgba(74, 222, 128, 0.45);
+}
+
+.text-vivid-amber {
+  color: #fde047;
+  text-shadow: 0 0 8px rgba(250, 204, 21, 0.45);
+}
+
+.text-vivid-rose {
+  color: #fda4af;
+  text-shadow: 0 0 8px rgba(251, 113, 133, 0.45);
+}
+
+/* ==========================================================================
+   ALINHAMENTO RIGOROSO GLOBAL: RITMO CONSISTENTE DE 24PX (1.5rem)
+   Garante padding e espaçamento harmônico entre todos os painéis e cartões
+   ========================================================================== */
+.vpsnsa-layout-aligned {
+  padding: 1.5rem !important; /* 24px */
+}
+
+.vpsnsa-panel-gap {
+  gap: 1.5rem !important; /* 24px */
+}
+
+.vpsnsa-card-gap {
+  gap: 1.5rem !important; /* 24px */
+}
+
+.vpsnsa-card-padding {
+  padding: 1.5rem !important; /* 24px */
+}
+
+.vpsnsa-section-spacing > * + * {
+  margin-top: 1.5rem !important; /* 24px */
+}
+
+.vpsnsa-grid-24 {
+  display: grid;
+  gap: 1.5rem !important; /* 24px */
+}

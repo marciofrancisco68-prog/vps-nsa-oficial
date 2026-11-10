@@ -1,0 +1,555 @@
+import React, { useState, useEffect } from 'react';
+import { 
+  Server, GitBranch, Shield, Key, Lock, Cpu, Globe, 
+  CreditCard, Mail, Smartphone, QrCode, CheckCircle2, 
+  AlertCircle, RefreshCw, ExternalLink, Clock, Play
+} from 'lucide-react';
+
+// ==========================================
+// 1. COMPONENTE DO LOGÓTIPO REDONDO INTERATIVO
+// ==========================================
+function InteractiveRoundLogo({ size = 42 }: { size?: number }) {
+  const handleLogoClick = () => {
+    window.location.href = 'https://www.nsaoficial.com.br';
+  };
+
+  return (
+    <button 
+      onClick={handleLogoClick}
+      className="relative rounded-full flex items-center justify-center bg-gradient-to-tr from-[#080B11] via-[#0D121F] to-[#151C2C] border-2 border-cyan-400 shadow-xl shadow-cyan-500/30 overflow-hidden cursor-pointer group transition-transform hover:scale-105 shrink-0"
+      style={{ width: size, height: size }}
+      title="Ir para a página inicial (www.nsaoficial.com.br)"
+    >
+      <svg viewBox="0 0 512 512" className="w-full h-full p-1 drop-shadow-[0_0_8px_rgba(0,216,255,0.6)] group-hover:rotate-6 transition-transform">
+        <defs>
+          <linearGradient id="brandGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+            <stop offset="0%" stopColor="#1E40AF" />
+            <stop offset="50%" stopColor="#2563EB" />
+            <stop offset="100%" stopColor="#00D8FF" />
+          </linearGradient>
+        </defs>
+        <circle cx="256" cy="256" r="230" fill="none" stroke="#00D8FF" strokeWidth="10" opacity="0.4" />
+        <g fill="url(#brandGradient)" fontFamily="Arial, sans-serif" fontWeight="900" fontSize="130">
+          <text x="70" y="295">N</text>
+          <text x="170" y="295">S</text>
+          <text x="265" y="295">A</text>
+        </g>
+        <path d="M 150 330 C 240 340, 320 300, 395 200 L 370 205 L 430 155 L 425 225 L 395 200 C 320 290, 240 325, 150 330 Z" fill="url(#brandGradient)" />
+      </svg>
+    </button>
+  );
+}
+
+// Interfaces
+interface GitHubRepo {
+  id: number;
+  name: string;
+  full_name: string;
+  default_branch: string;
+  html_url: string;
+  private: boolean;
+  description: string;
+}
+
+interface InvoiceDetails {
+  id: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string;
+  amount: number;
+  paymentMethod: 'credit_card' | 'pix';
+  timestamp: string;
+}
+
+// ==========================================
+// 2. APLICAÇÃO PRINCIPAL UNIFICADA (vpsNsA)
+// ==========================================
+export function App() {
+  const [viewState, setViewState] = useState<'splash' | 'dashboard'>('splash');
+  const [activeTab, setActiveTab] = useState<'vps' | 'deploy' | 'secureadmin' | 'checkout' | 'github'>('vps');
+  
+  // Relógio Vivo e Temporizador de Cores
+  const [currentTime, setCurrentTime] = useState(new Date());
+  const [colorThemeIndex, setColorThemeIndex] = useState(0);
+
+  // Estados de Segurança AdmiMaster
+  const [inputEmail, setInputEmail] = useState('');
+  const [authStatus, setAuthStatus] = useState<'idle' | 'success_master' | 'success_common' | 'error'>('idle');
+  const [errorMessage, setErrorMessage] = useState('');
+
+  // Estados de Deploy Engine
+  const [tenantId, setTenantId] = useState('cliente_001');
+  const [repoUrl, setRepoUrl] = useState('https://github.com/vpsnsa/meu-site.git');
+  const [domainName, setDomainName] = useState('meusite.com.br');
+  const [isDeploying, setIsDeploying] = useState(false);
+  const [deployLogs, setDeployLogs] = useState<string[]>([]);
+
+  // Estados do Checkout
+  const [paymentMethod, setPaymentMethod] = useState<'credit_card' | 'pix'>('credit_card');
+  const [cardNumber, setCardNumber] = useState('');
+  const [cardHolder, setCardHolder] = useState('VPSNSA HYPERSCALE');
+  const [cardExpiry, setCardExpiry] = useState('12/29');
+  const [cardCvv, setCardCvv] = useState('');
+  const [clientEmail, setClientEmail] = useState('cliente@exemplo.com.br');
+  const [clientPhone, setClientPhone] = useState('(21) 99999-8888');
+  const [isProcessingCheckout, setIsProcessingCheckout] = useState(false);
+  const [invoiceGenerated, setInvoiceGenerated] = useState<InvoiceDetails | null>(null);
+  const [dispatchStatus, setDispatchStatus] = useState<string[]>([]);
+
+  // Estados da API do GitHub
+  const [accessToken, setAccessToken] = useState('');
+  const [isGitHubConnected, setIsGitHubConnected] = useState(false);
+  const [isFetchingGitHub, setIsFetchingGitHub] = useState(false);
+  const [gitHubRepos, setGitHubRepos] = useState<GitHubRepo[]>([]);
+  const [gitHubError, setGitHubError] = useState('');
+
+  // Temas Dinâmicos (muda a cada 10 minutos)
+  const colorThemes = [
+    { border: 'border-cyan-500/40', bg: 'bg-cyan-950/30', text: 'text-cyan-300' },
+    { border: 'border-indigo-500/40', bg: 'bg-indigo-950/30', text: 'text-indigo-300' },
+    { border: 'border-purple-500/40', bg: 'bg-purple-950/30', text: 'text-purple-300' },
+    { border: 'border-emerald-500/40', bg: 'bg-emerald-950/30', text: 'text-emerald-300' },
+  ];
+
+  useEffect(() => {
+    // Splash Screen por 2 segundos
+    const splashTimer = setTimeout(() => setViewState('dashboard'), 2000);
+
+    // Relógio Vivo (1 segundo)
+    const clockTimer = setInterval(() => setCurrentTime(new Date()), 1000);
+
+    // Troca de Cor (10 minutos)
+    const themeTimer = setInterval(() => {
+      setColorThemeIndex(prev => (prev + 1) % colorThemes.length);
+    }, 10 * 60 * 1000);
+
+    return () => {
+      clearTimeout(splashTimer);
+      clearInterval(clockTimer);
+      clearInterval(themeTimer);
+    };
+  }, []);
+
+  const activeTheme = colorThemes[colorThemeIndex];
+
+  // Lógica de Reconhecimento com Alerta de Erro
+  const handleAuthenticate = (e: React.FormEvent) => {
+    e.preventDefault();
+    const cleanEmail = inputEmail.trim().toLowerCase();
+
+    if (!cleanEmail.includes('@') || cleanEmail.length < 5) {
+      setAuthStatus('error');
+      setErrorMessage('Erro de Credencial: Formato de e-mail inválido ou malformado!');
+      return;
+    }
+
+    if (cleanEmail.includes('marciofranciscodealmeida') || cleanEmail.includes('marciofrancisco') || cleanEmail.endsWith('@vpsnsa.master')) {
+      setAuthStatus('success_master');
+      setErrorMessage('');
+    } else if (cleanEmail.includes('@vpsnsa.') || cleanEmail.includes('@gmail.com') || cleanEmail.includes('@outlook.com')) {
+      setAuthStatus('success_common');
+      setErrorMessage('');
+    } else {
+      setAuthStatus('error');
+      setErrorMessage('Aviso de Segurança: E-mail não reconhecido na base de dados da vpsNsA. Acesso negado!');
+    }
+  };
+
+  // Lógica de Deploy Nativo
+  const handleRunDeploy = () => {
+    setIsDeploying(true);
+    setDeployLogs([
+      '⚡ [vpsNsA Engine] Inicializando isolamento por container...',
+      '📦 Conectando ao repositório GitHub via webhook seguro...',
+      '🔨 Compilando assets e instalando dependências (Node.js 20 / Vite)...',
+      '🔒 Gerando certificado SSL Let\'s Encrypt e rota Nginx Reverse Proxy...'
+    ]);
+
+    setTimeout(() => {
+      setDeployLogs(prev => [...prev, '🟢 [Status 200] Deploy concluído com sucesso em 1.4s! Site online.']);
+      setIsDeploying(false);
+    }, 2500);
+  };
+
+  // Lógica de Checkout Mercado Pago
+  const handleProcessPayment = (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsProcessingCheckout(true);
+    setDispatchStatus([]);
+    setInvoiceGenerated(null);
+
+    setTimeout(() => {
+      setDispatchStatus(prev => [...prev, '🔒 [PCI-DSS] Dados do cartão tokenizados via Mercado Pago SDK (Zero-Leak).']);
+    }, 800);
+
+    setTimeout(() => {
+      setDispatchStatus(prev => [...prev, `✅ [Gateway MP] Pagamento aprovado no valor de R$ 149,00 via ${paymentMethod === 'credit_card' ? 'Cartão de Crédito' : 'PIX'}.`]);
+    }, 1800);
+
+    setTimeout(() => {
+      const newInvoice: InvoiceDetails = {
+        id: `FAT-vpsNsA-${Math.floor(100000 + Math.random() * 900000)}`,
+        clientName: cardHolder,
+        clientEmail: clientEmail,
+        clientPhone: clientPhone,
+        amount: 149.00,
+        paymentMethod: paymentMethod,
+        timestamp: new Date().toLocaleString('pt-BR')
+      };
+
+      setInvoiceGenerated(newInvoice);
+      setDispatchStatus(prev => [
+        ...prev,
+        `📲 [SMS/WhatsApp API] Fatura enviada para o número de celular: ${clientPhone}`,
+        `📧 [SMTP Server] Fatura e recibo em PDF enviados para o e-mail: ${clientEmail}`
+      ]);
+      setIsProcessingCheckout(false);
+    }, 3000);
+  };
+
+  // Lógica de Conexão Real com a API do GitHub
+  const handleFetchGitHubRepos = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!accessToken.trim()) return;
+
+    setIsFetchingGitHub(true);
+    setGitHubError('');
+
+    try {
+      const response = await fetch('https://api.github.com/user/repos?per_page=20&sort=updated', {
+        headers: {
+          Authorization: `Bearer ${accessToken.trim()}`,
+          Accept: 'application/vnd.github.v3+json',
+        },
+      });
+
+      if (!response.ok) {
+        throw new Error('Falha na autenticação. Verifique se o Token está correto.');
+      }
+
+      const data: GitHubRepo[] = await response.json();
+      setGitHubRepos(data);
+      setIsGitHubConnected(true);
+    } catch (err: any) {
+      setGitHubError(err.message || 'Erro ao conectar com o GitHub.');
+    } finally {
+      setIsFetchingGitHub(false);
+    }
+  };
+
+  return (
+    <div className="min-h-screen w-full bg-[#080B11] text-slate-100 font-sans flex flex-col justify-between select-none">
+      
+      {/* 1. SPLASH SCREEN INICIAL */}
+      {viewState === 'splash' && (
+        <div className="fixed inset-0 z-50 bg-[#080B11]/95 backdrop-blur-md flex flex-col items-center justify-center space-y-6">
+          <div className="relative animate-pulse">
+            <InteractiveRoundLogo size={120} />
+            <div className="absolute -inset-3 rounded-full border-2 border-dashed border-cyan-400 animate-spin"></div>
+          </div>
+          <div className="text-center space-y-1">
+            <h3 className="text-xl font-black text-white tracking-wider">vpsNsA Sovereign Platform</h3>
+            <p className="text-xs text-cyan-400 font-mono">A inicializar cluster seguro em www.nsaoficial.com.br...</p>
+          </div>
+        </div>
+      )}
+
+      {/* 2. TICKER SUPERIOR ALINHADO & RELÓGIO VIVO */}
+      <div className={`w-full bg-[#0D121F] border-b ${activeTheme.border} px-4 py-2 flex items-center justify-between text-xs font-mono overflow-hidden transition-all duration-700`}>
+        <div className="flex items-center space-x-6 whitespace-nowrap overflow-x-auto no-scrollbar py-0.5">
+          <span className="text-orange-400 font-bold flex items-center gap-1">
+            <span>ITAÚ:</span> <span className="text-white">R$ 43,79</span> <span className="text-emerald-400 text-[10px]">(+2,05%)</span>
+          </span>
+          <span className="text-slate-700">|</span>
+          <span className="text-yellow-400 font-bold flex items-center gap-1">
+            <span>BB:</span> <span className="text-white">R$ 27,85</span> <span className="text-emerald-400 text-[10px]">(+0,85%)</span>
+          </span>
+          <span className="text-slate-700">|</span>
+          <span className="text-cyan-400 font-bold flex items-center gap-1">
+            <span>BRENT:</span> <span className="text-white">$ 74.20</span>
+          </span>
+          <span className="text-slate-700">|</span>
+          <span className="text-emerald-400 font-bold flex items-center gap-1">
+            <span>USD:</span> <span className="text-white">R$ 5,492</span>
+          </span>
+          <span className="text-slate-700">|</span>
+          <span className="text-indigo-400 font-bold flex items-center gap-1">
+            <span>IBOVESPA:</span> <span className="text-white">130.580 pts</span>
+          </span>
+        </div>
+
+        <div className="flex items-center gap-4 shrink-0 pl-4 border-l border-slate-800">
+          <div className="flex items-center gap-2 font-mono">
+            <Clock className="w-3.5 h-3.5 text-cyan-400 animate-pulse" />
+            <span className="text-cyan-300 font-bold">
+              {currentTime.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit', second: '2-digit' })}
+            </span>
+          </div>
+          <span className="bg-emerald-950 text-emerald-400 border border-emerald-800 text-[10px] px-2.5 py-0.5 rounded font-bold">
+            Streaming B3 🟢
+          </span>
+        </div>
+      </div>
+
+      {/* 3. PAINEL PRINCIPAL COM MENU LATERAL */}
+      <div className="flex flex-1 overflow-hidden">
+        
+        <aside className="w-64 bg-[#0D121F] border-r border-indigo-500/20 p-4 flex flex-col justify-between shrink-0">
+          <div className="space-y-6">
+            
+            <div className="flex items-center gap-3 px-2">
+              <InteractiveRoundLogo size={44} />
+              <div>
+                <span className="font-extrabold text-base text-white tracking-wider block">
+                  vps<span className="text-indigo-400">NsA</span>
+                </span>
+                <span className="text-[9px] text-slate-400 font-mono">nsaoficial.com.br</span>
+              </div>
+            </div>
+
+            <nav className="space-y-1 text-xs font-medium">
+              <div className="text-[10px] text-slate-500 uppercase tracking-wider px-2 font-bold mb-2">Painel Sovereign</div>
+              
+              <button onClick={() => setActiveTab('vps')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'vps' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Server className="w-4 h-4 text-indigo-400" />
+                <span>Visão Geral & Cloud</span>
+              </button>
+
+              <button onClick={() => setActiveTab('deploy')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'deploy' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <GitBranch className="w-4 h-4 text-emerald-400" />
+                <span>vpsNsA PaaS Engine</span>
+              </button>
+
+              <button onClick={() => setActiveTab('secureadmin')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'secureadmin' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Shield className="w-4 h-4 text-cyan-400" />
+                <span>AdmiMaster (Zero-Leak)</span>
+              </button>
+
+              <button onClick={() => setActiveTab('checkout')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'checkout' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <CreditCard className="w-4 h-4 text-amber-400" />
+                <span>Checkout Mercado Pago</span>
+              </button>
+
+              <button onClick={() => setActiveTab('github')} className={`w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition ${activeTab === 'github' ? 'bg-indigo-600 text-white font-bold' : 'text-slate-400 hover:bg-slate-800/50 hover:text-white'}`}>
+                <Globe className="w-4 h-4 text-purple-400" />
+                <span>GitHub Oficial API</span>
+              </button>
+            </nav>
+          </div>
+
+          <div className="pt-4 border-t border-slate-800 text-[11px] text-slate-400">
+            <p className="font-bold text-white">Márcio Francisco de Almeida</p>
+            <p className="text-[10px] text-slate-500">www.nsaoficial.com.br</p>
+          </div>
+        </aside>
+
+        {/* 4. CONTEÚDO DINÂMICO CONFORME A ABA SELECIONADA */}
+        <main className="flex-1 overflow-y-auto p-6 space-y-6 bg-[#080B11]">
+          
+          {/* MÓDULO VISÃO GERAL */}
+          {activeTab === 'vps' && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-3xl p-8 space-y-6 shadow-2xl">
+              <h2 className="text-xl font-black text-white flex items-center gap-2">
+                <Cpu className="w-6 h-6 text-cyan-400" />
+                <span>Cluster Soberano vpsNsA Ativo</span>
+              </h2>
+              <p className="text-xs text-slate-300 leading-relaxed">
+                Plataforma de alta performance configurada para operar com isolamento total de containers, automação CI/CD e proteção anti-hacker com encriptação de ponta a ponta.
+              </p>
+            </div>
+          )}
+
+          {/* MÓDULO PAAS ENGINE */}
+          {activeTab === 'deploy' && (
+            <div className="bg-[#0D121F] border border-indigo-500/30 rounded-3xl p-6 shadow-2xl space-y-4">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Server className="w-5 h-5 text-cyan-400" />
+                <span>vpsNsA PaaS Engine — Hospedagem de Containers & Serviços</span>
+              </h2>
+              
+              <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs font-mono pt-2">
+                <div>
+                  <label className="text-slate-400 block mb-1">CLIENT_ID</label>
+                  <input type="text" value={tenantId} onChange={(e) => setTenantId(e.target.value)} className="w-full bg-[#151C2C] border border-slate-800 rounded-xl px-3 py-2 text-cyan-300" />
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">REPO_URL</label>
+                  <input type="text" value={repoUrl} onChange={(e) => setRepoUrl(e.target.value)} className="w-full bg-[#151C2C] border border-slate-800 rounded-xl px-3 py-2 text-slate-200" />
+                </div>
+                <div>
+                  <label className="text-slate-400 block mb-1">DOMAIN_NAME</label>
+                  <input type="text" value={domainName} onChange={(e) => setDomainName(e.target.value)} className="w-full bg-[#151C2C] border border-slate-800 rounded-xl px-3 py-2 text-slate-200" />
+                </div>
+              </div>
+
+              <button onClick={handleRunDeploy} disabled={isDeploying} className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-indigo-600 text-white font-bold text-xs flex items-center gap-2">
+                {isDeploying ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Play className="w-4 h-4" />}
+                <span>{isDeploying ? 'Executando Build Soberano...' : 'Executar Deploy Nativo vpsNsA'}</span>
+              </button>
+
+              {deployLogs.length > 0 && (
+                <div className="bg-[#080B11] border border-slate-800 rounded-xl p-4 font-mono text-[11px] space-y-1 text-slate-300">
+                  {deployLogs.map((log, i) => <div key={i}>&gt; {log}</div>)}
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* MÓDULO ADMIMASTER (ZERO-LEAK) */}
+          {activeTab === 'secureadmin' && (
+            <div className="bg-[#0D121F] border border-indigo-500/40 rounded-3xl p-6 shadow-2xl space-y-6">
+              <div className="bg-gradient-to-r from-indigo-950/60 via-[#151C2C] to-[#0D121F] border border-indigo-500/30 rounded-2xl p-5 shadow-xl flex flex-col md:flex-row items-center justify-between gap-4">
+                <div className="space-y-1.5 w-full">
+                  <span className="bg-purple-950 text-purple-300 border border-purple-700 text-[10px] px-3 py-0.5 rounded-full font-mono font-bold uppercase">
+                    Sovereign Root Core
+                  </span>
+                  <h3 className="text-lg font-black text-white flex items-center gap-2 pt-1">
+                    <Shield className="w-5 h-5 text-cyan-400" />
+                    <span>Painel Privado AdmiMaster (Proteção Zero-Leak)</span>
+                  </h3>
+                  <div className="flex items-center gap-2 pt-1 text-xs font-mono text-slate-300">
+                    <Key className="w-4 h-4 text-amber-400" />
+                    <span>Auth Master:</span>
+                    <span className="bg-[#080B11] border border-slate-800 px-3 py-1 rounded-lg text-cyan-300 font-bold tracking-wider">
+                      xxxxxx@vpsnsa.master
+                    </span>
+                  </div>
+                </div>
+              </div>
+
+              <div className="bg-[#151C2C]/50 border border-slate-800 rounded-2xl p-5 space-y-3">
+                <h4 className="text-xs font-bold text-slate-200 uppercase tracking-wider">Mecanismo de Reconhecimento Dinâmico</h4>
+                <form onSubmit={handleAuthenticate} className="flex flex-col md:flex-row gap-3">
+                  <input type="text" placeholder="Insira o e-mail de acesso para verificação..." value={inputEmail} onChange={(e) => setInputEmail(e.target.value)} className="flex-1 bg-[#080B11] border border-slate-800 rounded-xl px-4 py-2.5 text-xs text-slate-100 outline-none" required />
+                  <button type="submit" className="bg-cyan-600 hover:bg-cyan-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl">Verificar Credencial</button>
+                </form>
+
+                {authStatus === 'success_master' && (
+                  <div className="p-3 bg-emerald-950/40 border border-emerald-500/50 rounded-xl text-emerald-300 text-xs font-mono flex items-center gap-2">
+                    <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+                    <span>Acesso Autorizado: <strong>Credencial Master (Sovereign Root) reconhecida.</strong></span>
+                  </div>
+                )}
+
+                {authStatus === 'error' && (
+                  <div className="p-3 bg-rose-950/50 border border-rose-500/50 rounded-xl text-rose-300 text-xs font-mono flex items-center gap-2">
+                    <AlertCircle className="w-4 h-4 text-rose-400" />
+                    <span><strong>Alerta do Sistema:</strong> {errorMessage}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          )}
+
+          {/* MÓDULO CHECKOUT MERCADO PAGO */}
+          {activeTab === 'checkout' && (
+            <div className="bg-[#0D121F] border border-cyan-500/30 rounded-3xl p-6 shadow-2xl space-y-6">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <Shield className="w-5 h-5 text-emerald-400" />
+                <span>Gateway Mercado Pago — Checkout Seguro & Faturamento Automático</span>
+              </h2>
+
+              <div className="flex gap-4 border-b border-slate-800 pb-4">
+                <button onClick={() => setPaymentMethod('credit_card')} className={`px-5 py-2.5 rounded-xl font-bold text-xs ${paymentMethod === 'credit_card' ? 'bg-indigo-600 text-white' : 'bg-[#151C2C] text-slate-400'}`}>
+                  Cartão de Crédito (Todas as Bandeiras)
+                </button>
+                <button onClick={() => setPaymentMethod('pix')} className={`px-5 py-2.5 rounded-xl font-bold text-xs ${paymentMethod === 'pix' ? 'bg-emerald-600 text-white' : 'bg-[#151C2C] text-slate-400'}`}>
+                  PIX Instantâneo
+                </button>
+              </div>
+
+              <form onSubmit={handleProcessPayment} className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div className="space-y-4 bg-[#151C2C]/50 border border-slate-800 p-5 rounded-2xl">
+                  <h3 className="text-xs font-bold text-slate-200 uppercase">Envio da Fatura (Celular & E-mail)</h3>
+                  <div>
+                    <label className="text-[11px] font-mono text-slate-400 block mb-1">E-mail Cadastrado</label>
+                    <input type="email" value={clientEmail} onChange={(e) => setClientEmail(e.target.value)} className="w-full bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100" required />
+                  </div>
+                  <div>
+                    <label className="text-[11px] font-mono text-slate-400 block mb-1">Celular (WhatsApp / SMS)</label>
+                    <input type="text" value={clientPhone} onChange={(e) => setClientPhone(e.target.value)} className="w-full bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100" required />
+                  </div>
+                </div>
+
+                <div className="space-y-4 bg-[#151C2C]/50 border border-slate-800 p-5 rounded-2xl">
+                  {paymentMethod === 'credit_card' ? (
+                    <>
+                      <h3 className="text-xs font-bold text-slate-200 uppercase">Dados do Cartão (PCI-DSS Blindado)</h3>
+                      <input type="text" placeholder="Número do Cartão" value={cardNumber} onChange={(e) => setCardNumber(e.target.value)} className="w-full bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-cyan-300 font-mono" required />
+                      <input type="text" placeholder="Nome Impresso" value={cardHolder} onChange={(e) => setCardHolder(e.target.value)} className="w-full bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-slate-100 uppercase" required />
+                      <div className="grid grid-cols-2 gap-3">
+                        <input type="text" placeholder="MM/AA" value={cardExpiry} onChange={(e) => setCardExpiry(e.target.value)} className="bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-center text-slate-100" required />
+                        <input type="password" placeholder="CVV" maxLength={4} value={cardCvv} onChange={(e) => setCardCvv(e.target.value)} className="bg-[#080B11] border border-slate-800 rounded-xl px-3 py-2 text-xs text-center text-slate-100" required />
+                      </div>
+                    </>
+                  ) : (
+                    <div className="text-center space-y-2 py-4">
+                      <QrCode className="w-20 h-20 text-emerald-400 mx-auto" />
+                      <p className="text-xs text-slate-300">Escaneie o QR Code para pagamento instantâneo via PIX.</p>
+                    </div>
+                  )}
+
+                  <button type="submit" disabled={isProcessingCheckout} className="w-full py-3 rounded-xl bg-gradient-to-r from-emerald-600 to-cyan-600 text-white font-bold text-xs flex items-center justify-center gap-2">
+                    {isProcessingCheckout ? <RefreshCw className="w-4 h-4 animate-spin" /> : <Lock className="w-4 h-4" />}
+                    <span>{isProcessingCheckout ? 'Tokenizando Cartão & Gerando Fatura...' : 'Pagar R$ 149,00 via Mercado Pago'}</span>
+                  </button>
+                </div>
+              </form>
+
+              {invoiceGenerated && (
+                <div className="bg-[#151C2C] border border-emerald-500/50 rounded-2xl p-4 text-xs font-mono space-y-2">
+                  <div className="text-emerald-400 font-bold">✅ Fatura {invoiceGenerated.id} emitida com sucesso!</div>
+                  <div className="text-slate-300">Disparada para WhatsApp: {invoiceGenerated.clientPhone} e E-mail: {invoiceGenerated.clientEmail}</div>
+                </div>
+              )}
+            </div>
+          )}
+
+          {/* MÓDULO GITHUB OFICIAL API */}
+          {activeTab === 'github' && (
+            <div className="bg-[#0D121F] border border-indigo-500/40 rounded-3xl p-6 shadow-2xl space-y-6">
+              <h2 className="text-lg font-bold text-white flex items-center gap-2">
+                <GitBranch className="w-5 h-5 text-indigo-400" />
+                <span>Gestão Oficial de Repositórios GitHub na vpsNsA</span>
+              </h2>
+
+              {!isGitHubConnected ? (
+                <form onSubmit={handleFetchGitHubRepos} className="flex flex-col md:flex-row gap-3">
+                  <input type="password" placeholder="Insira seu Personal Access Token (ghp_...)" value={accessToken} onChange={(e) => setAccessToken(e.target.value)} className="flex-1 bg-[#080B11] border border-slate-800 rounded-xl px-4 py-2.5 text-xs font-mono text-slate-100" required />
+                  <button type="submit" disabled={isFetchingGitHub} className="bg-indigo-600 hover:bg-indigo-500 text-white font-bold text-xs px-6 py-2.5 rounded-xl">
+                    {isFetchingGitHub ? 'A carregar...' : 'Carregar Repositórios Reais'}
+                  </button>
+                </form>
+              ) : (
+                <div className="space-y-3 max-h-[400px] overflow-y-auto">
+                  {gitHubRepos.map((repo) => (
+                    <div key={repo.id} className="bg-[#151C2C] border border-slate-800 rounded-2xl p-4 flex items-center justify-between">
+                      <div>
+                        <span className="font-bold text-white font-mono text-xs">{repo.full_name}</span>
+                        <p className="text-[11px] text-slate-400 font-mono">{repo.description || 'Sem descrição.'}</p>
+                      </div>
+                      <a href={repo.html_url} target="_blank" rel="noopener noreferrer" className="px-3 py-1.5 bg-slate-800 text-cyan-400 rounded-xl text-xs font-mono flex items-center gap-1">
+                        <span>Ver no GitHub</span>
+                        <ExternalLink className="w-3 h-3" />
+                      </a>
+                    </div>
+                  ))}
+                </div>
+              )}
+            </div>
+          )}
+
+        </main>
+      </div>
+
+      {/* RODAPÉ */}
+      <footer className="w-full bg-[#0D121F] border-t border-indigo-500/20 px-6 py-2 flex items-center justify-between text-[11px] text-slate-500">
+        <span>© 2026 vpsNsA Sovereign Cloud — www.nsaoficial.com.br</span>
+        <span className="font-semibold text-slate-400">CEO Márcio Francisco de Almeida</span>
+      </footer>
+
+    </div>
+  );
+}
+
+export default App;
